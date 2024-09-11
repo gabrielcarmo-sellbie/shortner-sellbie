@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  googleId  String   @unique @map("google_id")
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  lastLogin DateTime @default(now()) @map("last_login")
+
+  urls Url[]
+
+  @@index([googleId])
+  @@map("users")
+}
+
+model Url {
+  id             String    @id @default(uuid())
+  originalUrl    String    @map("original_url")
+  shortenedHash  String    @unique @map("shortened_hash")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  expirationDate DateTime? @map("expiration_date")
+  clicks         Int       @default(0)
+  creatorIp      String?   @map("creator_ip")
+  customAlias    String?   @unique @map("custom_alias")
+  userId         String?   @map("user_id")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([shortenedHash])
+  @@map("urls")
+}
